@@ -330,7 +330,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "nordvpn-tui"
+name = "mullvad-tui"
 version = "0.1.0"
 dependencies = [
  "clap",
