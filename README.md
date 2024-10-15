@@ -21,7 +21,7 @@
 Before installing, make sure you have the following installed:
 
 - [Rust](https://www.rust-lang.org/tools/install)
-- [mullvad CLI](https://mullvad.com/download/linux/)
+- [mullvad CLI](https://mullvad.net/en/download/vpn/linux)
 
   Ensure you have access to the mullvad command-line tool by verifying it is installed and accessible from the terminal:
 
@@ -34,7 +34,7 @@ Before installing, make sure you have the following installed:
 Clone the repository and build the project:
 
 ```bash
-git clone https://github.com/Degra02/mullvad-tui.git
+git clone https://github.com/UndecidedTech/mullvad-tui.git
 cd mullvad-tui
 cargo build --release
 ```
