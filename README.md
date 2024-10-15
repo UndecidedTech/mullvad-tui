@@ -4,7 +4,7 @@
 
 `mullvad-tui` is a terminal-based user interface (TUI) tool built in Rust that provides a simple and interactive way to manage mullvad connections. The tool allows users to browse, search, and select countries and cities for VPN connection directly from the terminal using keyboard navigation.
 
-![screenshot](./screenshot.jpg)
+![screenshot](./screenshot.png)
 
 ## Features
 
