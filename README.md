@@ -1,5 +1,7 @@
 # mullvad-tui
 
+### Disclaimer: This was just a quick hack that I made from [@Degra02's nordvpn-tui](https://github.com/Degra02/nordvpn-tui). All credit goes to him and maybe a tiny bit to the power of llm's (I barely know rust whatsoever)
+
 `mullvad-tui` is a terminal-based user interface (TUI) tool built in Rust that provides a simple and interactive way to manage mullvad connections. The tool allows users to browse, search, and select countries and cities for VPN connection directly from the terminal using keyboard navigation.
 
 ![screenshot](./screenshot.jpg)
