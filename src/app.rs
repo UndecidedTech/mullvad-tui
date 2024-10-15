@@ -65,22 +65,82 @@ pub struct App {
 
 impl App {
     pub fn init(config: Option<String>) -> Result<Self, AppError> {
-        let config = config::Config::load(config.as_deref())?;
+        println!("Initializing app...");
 
-        let output = std::process::Command::new("nordvpn")
-            .arg("countries")
-            .output()?;
+        let config = match config::Config::load(config.as_deref()) {
+            Ok(cfg) => cfg,
+            Err(e) => {
+                eprintln!("Failed to load config: {:?}", e);
+                return Err(AppError::Config(e.to_string()));
+            }
+        };
 
-        let countries: Vec<String> = String::from_utf8(output.stdout)?
-            .split_whitespace()
-            .map(|s| s.to_string())
-            .collect();
+        println!("Config loaded successfully.");
 
-        let output = std::process::Command::new("nordvpn")
+        // Check if Mullvad CLI is available
+        let status = match std::process::Command::new("mullvad")
+            .arg("relay")
+            .arg("list")
+            .status() {
+            Ok(s) => s,
+            Err(e) => {
+                eprintln!("Failed to execute 'mullvad relay list': {:?}", e);
+                return Err(AppError::Command(e.to_string()));
+            }
+        };
+
+        if status.success() {
+            println!("The 'mullvad relay list' command ran successfully.");
+        } else {
+            eprintln!("Error: The 'mullvad relay list' command failed to run.");
+            eprintln!("Please make sure Mullvad CLI is installed and accessible.");
+            return Err(AppError::Command(status.to_string()));
+        }
+
+        let output = match std::process::Command::new("mullvad")
+            .arg("relay")
+            .arg("list")
+            .output() {
+            Ok(o) => o,
+            Err(e) => {
+                eprintln!("Failed to get output from 'mullvad relay list': {:?}", e);
+                return Err(AppError::Command(e.to_string()));
+            }
+        };
+
+        let countries: Vec<String> = match String::from_utf8(output.stdout) {
+            Ok(s) => s.lines()
+                .filter_map(|line| {
+                    if line.contains('(') && !line.starts_with('\t') {
+                        Some(line.trim().to_string())
+                    } else {
+                        None
+                    }
+                })
+                .collect(),
+            Err(e) => {
+                eprintln!("Failed to parse 'mullvad relay list' output: {:?}", e);
+                return Err(AppError::Parse(e.to_string()));
+            }
+        };
+
+        println!("Countries list loaded successfully.");
+
+        let output = match std::process::Command::new("mullvad")
             .arg("status")
-            .output()?;
+            .output() {
+            Ok(o) => o,
+            Err(e) => {
+                eprintln!("Failed to get Mullvad status: {:?}", e);
+                return Err(AppError::Command(e.to_string()));
+            }
+        };
 
-        let connection_status = String::from_utf8(output.stdout)?.contains("Connected");
+        let connection_status = String::from_utf8(output.stdout)
+            .map(|s| s.contains("Connected"))
+            .unwrap_or(false);
+
+        println!("Connection status: {}", if connection_status { "Connected" } else { "Disconnected" });
 
         let mut state = ListState::default();
         state.select(Some(0));
@@ -110,37 +170,90 @@ impl App {
         Ok(())
     }
 
+
     fn set_countries(&mut self) -> Result<(), AppError> {
-        let output = std::process::Command::new("nordvpn")
-            .arg("countries")
+        let output = std::process::Command::new("mullvad")
+            .arg("relay")
+            .arg("list")
             .output()?;
 
         self.countries = String::from_utf8(output.stdout)?
-            .split_whitespace()
-            .map(|s| s.to_string())
-            .collect();
+            .lines()
+            .filter_map(|line| {
+                if line.contains('(') && !line.starts_with('\t') {
+                    Some(line.trim().to_string())
+                } else {
+                    None
+                }
+            })
+        .collect();
 
-        Ok(())
+                Ok(())
     }
 
     fn set_cities(&mut self) -> Result<(), AppError> {
-        let output = std::process::Command::new("nordvpn")
-            .arg("cities")
-            .arg(&self.countries[self.country_index])
+        let output = std::process::Command::new("mullvad")
+            .arg("relay")
+            .arg("list")
             .output()?;
 
+        let country = &self.countries[self.country_index];
+        let _country_code = country.split('(').nth(1).unwrap().split(')').next().unwrap();
+
         self.cities = String::from_utf8(output.stdout)?
-            .split_whitespace()
-            .map(|s| s.to_string())
-            .collect();
+            .lines()
+            .skip_while(|line| !line.contains(country))
+            .skip(1)
+            .take_while(|line| line.starts_with('\t'))
+            .filter_map(|line| {
+                if line.contains('(') && line.contains(')') {
+                    Some(line.trim().to_string())
+                } else {
+                    None
+                }
+            })
+        .collect();
 
         Ok(())
     }
 
+    // fn set_countries(&mut self) -> Result<(), AppError> {
+    //     let output = std::process::Command::new("mullvad")
+    //         .arg("relay list")
+    //         .output()?;
+    //
+    //     self.countries = String::from_utf8(output.stdout)?
+    //         .split_whitespace()
+    //         .map(|s| s.to_string())
+    //         .collect();
+    //
+    //     Ok(())
+    // }
+    //
+    // fn set_cities(&mut self) -> Result<(), AppError> {
+    //     let output = std::process::Command::new("mullvad")
+    //         .arg("cities")
+    //         .arg(&self.countries[self.country_index])
+    //         .output()?;
+    //
+    //     self.cities = String::from_utf8(output.stdout)?
+    //         .split_whitespace()
+    //         .map(|s| s.to_string())
+    //         .collect();
+    //
+    //     Ok(())
+    // }
+
     fn connect(&mut self) -> Result<View, AppError> {
-        let output = std::process::Command::new("nordvpn")
-            .arg("connect")
+        // mullvad relay set location se mma
+        let _relay = std::process::Command::new("mullvad")
+            .arg("relay set location")
+            .arg(&self.countries[self.country_index])
             .arg(&self.cities[self.city_index])
+            .output()?;
+
+        let output = std::process::Command::new("mullvad")
+            .arg("connect")
             .output()?;
 
         self.connected = output.status.success();
@@ -152,12 +265,12 @@ impl App {
         if output.status.success() {
             Ok(View::Connection)
         } else {
-            Err(AppError::Command(output.status))
+            Err(AppError::Command(output.status.to_string()))
         }
     }
 
     fn disconnect(&mut self) -> Result<(), AppError> {
-        let output = std::process::Command::new("nordvpn")
+        let output = std::process::Command::new("mullvad")
             .arg("disconnect")
             .output()?;
 
@@ -170,7 +283,7 @@ impl App {
         if output.status.success() {
             Ok(())
         } else {
-            Err(AppError::Command(output.status))
+            Err(AppError::Command(output.status.to_string()))
         }
     }
 
@@ -180,9 +293,9 @@ impl App {
             .margin(1)
             .constraints(
                 [
-                    Constraint::Length(3),
-                    Constraint::Min(0),
-                    Constraint::Length(3),
+                Constraint::Length(3),
+                Constraint::Min(0),
+                Constraint::Length(3),
                 ]
                 .as_ref(),
             )
@@ -226,7 +339,7 @@ impl App {
                 ];
                 Title::from(
                     Line::from(instructions)
-                        .style(Style::default().fg(self.config.colors.search_mode)),
+                    .style(Style::default().fg(self.config.colors.search_mode)),
                 )
             }
         };
@@ -235,8 +348,8 @@ impl App {
             .title(title.alignment(Alignment::Center))
             .title(
                 instructions
-                    .alignment(Alignment::Center)
-                    .position(Position::Bottom),
+                .alignment(Alignment::Center)
+                .position(Position::Bottom),
             )
             .bg(self.config.colors.background)
             .border_set(border::THICK);
@@ -284,7 +397,7 @@ impl App {
                 _ => Style::default().fg(self.config.colors.items),
             };
             list.push(ListItem::new(
-                Line::from(Span::from(country.to_string()))
+                    Line::from(Span::from(country.to_string()))
                     .alignment(Alignment::Center)
                     .style(style),
             ));
@@ -292,8 +405,8 @@ impl App {
 
         let list = List::new(list).block(block).highlight_style(
             Style::default()
-                .add_modifier(Modifier::BOLD)
-                .add_modifier(Modifier::ITALIC),
+            .add_modifier(Modifier::BOLD)
+            .add_modifier(Modifier::ITALIC),
         );
         f.render_stateful_widget(list, f.area(), &mut self.state);
     }
@@ -303,7 +416,7 @@ impl App {
 
         for line in self.connection_output.iter() {
             list.push(ListItem::new(
-                Line::from(Span::from(line.to_string()))
+                    Line::from(Span::from(line.to_string()))
                     .alignment(Alignment::Center)
                     .style(Style::default().fg(self.config.colors.connection_output)),
             ));
@@ -311,8 +424,8 @@ impl App {
 
         let list = List::new(list).block(block).highlight_style(
             Style::default()
-                .add_modifier(Modifier::BOLD)
-                .add_modifier(Modifier::ITALIC),
+            .add_modifier(Modifier::BOLD)
+            .add_modifier(Modifier::ITALIC),
         );
         f.render_widget(list, f.area());
     }
@@ -440,7 +553,7 @@ impl App {
                             .into_iter()
                             .filter(|c| c.to_lowercase().contains(&self.search_string))
                             .collect();
-                    }
+                        }
                     View::Cities => {
                         self.cities = self
                             .cities
@@ -448,7 +561,7 @@ impl App {
                             .into_iter()
                             .filter(|c| c.to_lowercase().contains(&self.search_string))
                             .collect();
-                    }
+                        }
                     View::Connection => {}
                 }
                 self.country_index = 0;

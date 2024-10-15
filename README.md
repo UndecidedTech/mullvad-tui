@@ -1,6 +1,6 @@
-# nordvpn-tui
+# mullvad-tui
 
-`nordvpn-tui` is a terminal-based user interface (TUI) tool built in Rust that provides a simple and interactive way to manage NordVPN connections. The tool allows users to browse, search, and select countries and cities for VPN connection directly from the terminal using keyboard navigation.
+`mullvad-tui` is a terminal-based user interface (TUI) tool built in Rust that provides a simple and interactive way to manage mullvad connections. The tool allows users to browse, search, and select countries and cities for VPN connection directly from the terminal using keyboard navigation.
 
 ![screenshot](./screenshot.jpg)
 
@@ -10,7 +10,7 @@
 - **Search functionality**: Quickly search for countries and cities.
 - **Vim-like key bindings**: Supports familiar keybindings such as `gg` to jump to the top and `G` to jump to the bottom of lists.
 - **Keyboard-driven**: Navigate and select VPN servers entirely with your keyboard.
-- **Connect with ease**: Instantly connect to the selected server using NordVPN's CLI.
+- **Connect with ease**: Instantly connect to the selected server using mullvad's CLI.
 
 ## Installation
 
@@ -19,12 +19,12 @@
 Before installing, make sure you have the following installed:
 
 - [Rust](https://www.rust-lang.org/tools/install)
-- [NordVPN CLI](https://nordvpn.com/download/linux/)
-  
-  Ensure you have access to the NordVPN command-line tool by verifying it is installed and accessible from the terminal:
+- [mullvad CLI](https://mullvad.com/download/linux/)
+
+  Ensure you have access to the mullvad command-line tool by verifying it is installed and accessible from the terminal:
 
   ```bash
-  nordvpn --version
+  mullvad --version
   ```
 
 ### Build from source
@@ -32,8 +32,8 @@ Before installing, make sure you have the following installed:
 Clone the repository and build the project:
 
 ```bash
-git clone https://github.com/Degra02/nordvpn-tui.git
-cd nordvpn-tui
+git clone https://github.com/Degra02/mullvad-tui.git
+cd mullvad-tui
 cargo build --release
 ```
 
@@ -42,9 +42,11 @@ To run the tool:
 ```bash
 cargo run --release
 ```
+
 or alternatively
+
 ```bash
-./target/release/nordvpn-tui
+./target/release/mullvad-tui
 ```
 
 ## Custom Configuration
@@ -53,40 +55,40 @@ The file `config.toml` contains the configuration for the tool. You can customiz
 
 - `colors`: Customize the colors of the interface.
 
-An example file is found in the repository as `config-example.toml` which you can copy to `$HOME/.config/nordvpn-tui/config.toml` and modify as needed.
+An example file is found in the repository as `config-example.toml` which you can copy to `$HOME/.config/mullvad-tui/config.toml` and modify as needed.
 
 ## Usage
 
-Once you start `nordvpn-tui`, you will be presented with a list of countries where NordVPN servers are available. You can navigate and connect using keyboard commands.
+Once you start `mullvad-tui`, you will be presented with a list of countries where mullvad servers are available. You can navigate and connect using keyboard commands.
 
 ### Keyboard Shortcuts
 
 In normal mode (default):
 
-| Key          | Action                                       |
-|----------------------|----------------------------------------------|
+| Key                 | Action                                       |
+| ------------------- | -------------------------------------------- |
 | `K` or `Arrow Up`   | Move selection up                            |
 | `J` or `Arrow Down` | Move selection down                          |
-| `Enter`      | Select a country/city and connect to the VPN |
-| `D`       | Disconnect from the VPN                      |
-| `i` or `/` | Enter Search mode                            |
-| `g g`        | Jump to the top of the list                  |
-| `G`          | Jump to the bottom of the list               |
-| `q`          | Quit the application                         |
+| `Enter`             | Select a country/city and connect to the VPN |
+| `D`                 | Disconnect from the VPN                      |
+| `i` or `/`          | Enter Search mode                            |
+| `g g`               | Jump to the top of the list                  |
+| `G`                 | Jump to the bottom of the list               |
+| `q`                 | Quit the application                         |
 
 In search mode:
 
-| Key        | Action                                       |
-|------------|----------------------------------------------|
-| `<char>`     | Add char to search query |
-| `Enter`      | Search with current query |
-| `Backspace`  | Delete last query char |
+| Key         | Action                    |
+| ----------- | ------------------------- |
+| `<char>`    | Add char to search query  |
+| `Enter`     | Search with current query |
+| `Backspace` | Delete last query char    |
 
-Once you've selected a country (or city if available), pressing `Enter` will automatically connect to the selected location using NordVPN.
+Once you've selected a country (or city if available), pressing `Enter` will automatically connect to the selected location using mullvad.
 
 ## Contributing
 
-Feel free to submit issues or pull requests to contribute to the development of `nordvpn-tui`. Contributions are welcome!
+Feel free to submit issues or pull requests to contribute to the development of `mullvad-tui`. Contributions are welcome!
 
 1. Fork the repository.
 2. Create a new branch (`git checkout -b feature-branch`).

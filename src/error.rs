@@ -3,10 +3,12 @@
 #[derive(Debug)]
 pub enum AppError {
     Io(std::io::Error),
-    Command(std::process::ExitStatus),
+    Command(String),
     Utf8(std::string::FromUtf8Error),
     Toml(toml::de::Error),
     ParseColor(ratatui::style::ParseColorError),
+    Config(String),
+    Parse(String),
 }
 
 impl From<std::io::Error> for AppError {
@@ -32,3 +34,11 @@ impl From<ratatui::style::ParseColorError> for AppError {
         Self::ParseColor(e)
     }
 }
+
+impl From<std::process::ExitStatus> for AppError {
+    fn from(e: std::process::ExitStatus) -> Self {
+        Self::Command(e.to_string())
+    }
+}
+
+
